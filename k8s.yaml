@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uploads-app
+  labels:
+    app: uploads-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uploads-app
+  template:
+    metadata:
+      labels:
+        app: uploads-app
+    spec:
+      containers:
+      - name: uploads-app
+        image: ghcr.io/qdentity/uploads-test:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PHX_HOST
+          value: "uploads.qdentity.io"
+        - name: SECRET_KEY_BASE
+          value: "67VDdgDVbmBuBucPKcrY8cIzHxz4vSVUq6hDPYdaU1Zy+FJpD9LJIYIc1vcTnsbK"
+        - name: PORT
+          value: "8080"
+        - name: MIX_ENV
+          value: "prod"
+        resources:
+          requests:
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uploads-service
+  labels:
+    app: uploads-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: uploads-app
