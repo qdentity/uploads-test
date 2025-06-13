@@ -19,7 +19,7 @@ defmodule UploadsWeb.UploadLive do
      |> assign(:done, false)
      |> assign(:form, to_form(%{}))
      |> assign(:uploaded_files, list_uploads!())
-     |> allow_upload(:archive, accept: @accept, max_entries: 4, max_file_size: @max_file_size)}
+     |> allow_upload(:archive, accept: @accept, max_entries: 4, max_file_size: @max_file_size, chunk_size: 2_097_152)}
   end
 
   defp list_uploads! do
