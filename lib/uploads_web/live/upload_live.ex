@@ -3,6 +3,7 @@ defmodule UploadsWeb.UploadLive do
   use UploadsWeb, :live_view
 
   @accept ~w(.zip .jpg .jpeg .png)
+  @max_file_size 20_000_000_000
 
   def root do
     case Application.get_env(:uploads, :uploads_path) do
@@ -10,7 +11,7 @@ defmodule UploadsWeb.UploadLive do
       path -> path
     end
   end
-  
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -18,11 +19,13 @@ defmodule UploadsWeb.UploadLive do
      |> assign(:done, false)
      |> assign(:form, to_form(%{}))
      |> assign(:uploaded_files, list_uploads!())
-     |> allow_upload(:archive, accept: @accept, max_entries: 4)}
+     |> allow_upload(:archive, accept: @accept, max_entries: 4, max_file_size: @max_file_size)}
   end
 
   defp list_uploads! do
-    root() |> File.ls!() |> Enum.map(fn filename ->
+    root()
+    |> File.ls!()
+    |> Enum.map(fn filename ->
       root() |> Path.join(filename) |> to_upload()
     end)
   end
@@ -66,11 +69,13 @@ defmodule UploadsWeb.UploadLive do
   def render(assigns) do
     ~H"""
     <div :if={@done}>
-      <h1 class="w-full text-center text-3xl font-bold text-emerald-600 absolute top-[40%] left-0">Done!</h1>
+      <h1 class="w-full text-center text-3xl font-bold text-emerald-600 absolute top-[40%] left-0">
+        Done!
+      </h1>
     </div>
     <.form :if={not @done} for={@form} phx-submit="save" phx-change="validate">
       <h2 class="font-bold text-2xl">Upload new</h2>
-      
+
       <div class="my-3">
         <.live_file_input upload={@uploads.archive} />
       </div>
@@ -80,12 +85,21 @@ defmodule UploadsWeb.UploadLive do
         <div :for={entry <- @uploads.archive.entries}>
           <div class="flex gap-3 my-1">
             <progress value={entry.progress} max="100" class="flex-grow">{entry.progress}%</progress>
-            <button type="button" phx-click="cancel" phx-value-ref={entry.ref} aria-label="cancel">&times;</button>
+            <button type="button" phx-click="cancel" phx-value-ref={entry.ref} aria-label="cancel">
+              &times;
+            </button>
           </div>
-          <p :for={err <- upload_errors(@uploads.archive, entry)} class="text-red-600 px-2 py-1 bg-red-100">{error_to_string(err)}</p>
+          <p
+            :for={err <- upload_errors(@uploads.archive, entry)}
+            class="text-red-600 px-2 py-1 bg-red-100"
+          >
+            {error_to_string(err)}
+          </p>
         </div>
 
-        <p :for={err <- upload_errors(@uploads.archive)} class="text-red-600 px-2 py-1 bg-red-100">{error_to_string(err)}</p>
+        <p :for={err <- upload_errors(@uploads.archive)} class="text-red-600 px-2 py-1 bg-red-100">
+          {error_to_string(err)}
+        </p>
       </div>
 
       <.button>Upload!</.button>
@@ -97,9 +111,15 @@ defmodule UploadsWeb.UploadLive do
         <img
           :for={u <- @uploaded_files}
           :if={is_nil(u.count)}
-          src={u.src} class="aspect-square w-[200px] object-cover" />
+          src={u.src}
+          class="aspect-square w-[200px] object-cover"
+        />
 
-        <div :for={u <- @uploaded_files} :if={u.count} class="bg-gray-100 aspect-square w-[200px] shrink-0 flex flex-col justify-center items-center">
+        <div
+          :for={u <- @uploaded_files}
+          :if={u.count}
+          class="bg-gray-100 aspect-square w-[200px] shrink-0 flex flex-col justify-center items-center"
+        >
           <p class="font-bold">{Path.basename(u.path)}</p>
           <p><span title={"#{u.size} bytes"}>{format_bytes(u.size)}</span>, {u.count} files</p>
         </div>
@@ -127,13 +147,16 @@ defmodule UploadsWeb.UploadLive do
   @units ["bytes", "kB", "MB", "GB", "TB", "PB"]
 
   def format_bytes(atom) when is_atom(atom), do: "#{atom} bytes"
+
   def format_bytes(bytes) when is_integer(bytes) and bytes >= 0 do
     format(bytes, 0)
   end
+
   defp format(bytes, unit_index) when bytes < 1024 or unit_index == length(@units) - 1 do
     value = Float.round(bytes, 2)
     "#{value} #{@units |> Enum.at(unit_index)}"
   end
+
   defp format(bytes, unit_index) do
     format(bytes / 1024, unit_index + 1)
   end
