@@ -83,6 +83,9 @@ ENV LC_ALL en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
+# Create uploads directory
+RUN mkdir -p /app/priv/static/uploads && chown nobody:root /app/priv/static/uploads
+
 # set runner ENV
 ENV MIX_ENV="prod"
 

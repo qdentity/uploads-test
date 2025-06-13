@@ -52,6 +52,8 @@ if config_env() == :prod do
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :uploads, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  
+  config :uploads, :uploads_path, "/app/uploads"
 
   config :uploads, UploadsWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

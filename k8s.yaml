@@ -31,6 +31,9 @@ spec:
         resources:
           requests:
             memory: "256Mi"
+        volumeMounts:
+        - name: uploads-storage
+          mountPath: /app/uploads
         livenessProbe:
           httpGet:
             path: /
@@ -43,6 +46,9 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+      volumes:
+      - name: uploads-storage
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

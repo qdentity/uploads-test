@@ -5,7 +5,10 @@ defmodule UploadsWeb.UploadLive do
   @accept ~w(.zip .jpg .jpeg .png)
 
   def root do
-    Application.app_dir(:uploads, "priv/static/uploads")
+    case Application.get_env(:uploads, :uploads_path) do
+      nil -> Application.app_dir(:uploads, "priv/static/uploads")
+      path -> path
+    end
   end
   
   @impl true
