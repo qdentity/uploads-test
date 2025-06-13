@@ -34,8 +34,7 @@ defmodule UploadsWeb.UploadLive do
     %{
       path: path,
       src: ~p"/uploads/#{Path.basename(path)}",
-      size: file_size(path),
-      count: count_files(path)
+      size: file_size(path)
     }
   end
 
@@ -108,20 +107,12 @@ defmodule UploadsWeb.UploadLive do
       <h2 class="font-bold text-2xl my-2">Uploads</h2>
 
       <div class="flex flex-wrap gap-1">
-        <img
-          :for={u <- @uploaded_files}
-          :if={is_nil(u.count)}
-          src={u.src}
-          class="aspect-square w-[200px] object-cover"
-        />
-
         <div
           :for={u <- @uploaded_files}
-          :if={u.count}
           class="bg-gray-100 aspect-square w-[200px] shrink-0 flex flex-col justify-center items-center"
         >
           <p class="font-bold">{Path.basename(u.path)}</p>
-          <p><span title={"#{u.size} bytes"}>{format_bytes(u.size)}</span>, {u.count} files</p>
+          <p><span title={"#{u.size} bytes"}>{format_bytes(u.size)}</span></p>
         </div>
       </div>
     </div>
